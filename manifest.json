@@ -1,0 +1,13 @@
+{
+    "name": "SağlıcakLA Beslenme Takibi",
+    "short_name": "SağlıcakLA",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#3b82f6",
+    "icons": [{
+        "src": "icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+    }]
+}

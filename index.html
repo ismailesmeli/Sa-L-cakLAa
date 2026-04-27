@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>SağlıcakLA - Beslenme Takibi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="welcomeScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; text-align: center; transition: opacity 0.5s ease;">
+        <div style="font-size: 4.5rem; margin-bottom: 1rem;">🌅</div>
+        <h2 id="welcomeDate" style="margin-bottom: 1.5rem; font-size: 2rem; color: var(--text);">--</h2>
+        <p id="welcomeQuote" style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2.5rem; font-style: italic; line-height: 1.6; max-width: 400px;">Yükleniyor...</p>
+        <button id="welcomeBtn" style="padding: 1rem 2rem; font-size: 1.2rem; border-radius: 2rem; width: 100%; max-width: 300px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">Başla</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button id="homeBtn" class="secondary small" onclick="switchTab('home')" style="display: none; border-radius: 1rem; width: 45px; height: 45px; padding: 0; justify-content: center; align-items: center; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">◀</button>
+                <h1 style="margin-left: 0.2rem;">SağlıcakLA</h1>
+            </div>
+            <button id="themeToggle" class="secondary small" style="border-radius: 1rem;">🌙 Mod</button>
+        </div>
+
+        <div id="homeTab" class="tab-content">
+            <div style="margin-bottom: 2rem; text-align: center; animation: fadeSlideUp 0.5s ease;">
+                <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text); margin-bottom: 0.4rem;">Ne yapmak istersin? 🚀</h2>
+                <p style="font-size: 1rem; color: var(--text-secondary);">Senin için harika araçlar hazırladık.</p>
+            </div>
+            <div class="app-grid">
+                <div class="app-btn" onclick="switchTab('daily')"><i>🍽️</i><span>Beslenme</span></div>
+                <div class="app-btn" onclick="switchTab('activity')"><i>💧</i><span>Su & Aktivite</span></div>
+                <div class="app-btn" onclick="switchTab('ai')"><i>🤖</i><span>Yapay Zeka</span></div>
+                <div class="app-btn" onclick="switchTab('stats')"><i>📈</i><span>Grafikler</span></div>
+                <div class="app-btn" onclick="switchTab('profile')"><i>👤</i><span>Profil</span></div>
+                <div class="app-btn" onclick="switchTab('habits')"><i>✅</i><span>Alışkanlıklar</span></div>
+                <div class="app-btn" onclick="switchTab('goals')"><i>🎯</i><span>Hedefler</span></div>
+                <div class="app-btn" onclick="switchTab('recipes')"><i>📖</i><span>Tariflerim</span></div>
+                <div class="app-btn" onclick="switchTab('workout')"><i>💪</i><span>Programım</span></div>
+                <div class="app-btn" onclick="switchTab('reports')"><i>📊</i><span>Raporlar</span></div>
+                <div class="app-btn" onclick="switchTab('mood')"><i>😊</i><span>Ruh Hali</span></div>
+                <div class="app-btn" onclick="switchTab('history')"><i>📜</i><span>Geçmiş</span></div>
+                <div class="app-btn" onclick="switchTab('badges')"><i>🏆</i><span>Başarılar</span></div>
+                <div class="app-btn" onclick="switchTab('info')"><i>📚</i><span>Rehber</span></div>
+            </div>
+            <button id="installAppBtn" class="secondary" style="width: 100%; margin-top: 1rem; display: none; border-color: var(--primary); color: var(--primary); padding: 1rem; border-radius: 1.5rem; font-size: 1rem;">📲 Uygulamayı Ekrana Ekle</button>
+        </div>
+
+        <div id="profileTab" class="tab-content hidden">
+            <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; text-align: center;">
+                <div class="avatar-container" onclick="document.getElementById('avatarInput').click()">
+                    <!-- Varsayılan olarak boş bir insan figürü (SVG) gösterilir -->
+                    <img id="profileAvatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>"
+                        alt="Profil">
+                    <div class="avatar-edit-overlay">📷 Değiştir</div>
+                </div>
+                <div class="card-title" style="margin-bottom: 0;">Profil Fotoğrafı</div>
+                <div class="small-text">Değiştirmek için fotoğrafa dokunun</div>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            </div>
+            <div class="card">
+                <div class="card-title">👤 Vücut Bilgileri</div>
+                <div class="flex-between" style="gap: 0.8rem;">
+                    <input type="number" id="weight" placeholder="Kilo (kg)">
+                    <input type="number" id="height" placeholder="Boy (cm)">
+                </div>
+                <div class="flex-between" style="gap: 0.8rem;">
+                    <input type="number" id="age" placeholder="Yaş">
+                    <select id="gender"><option value="male">Erkek</option><option value="female">Kadın</option></select>
+                </div>
+                <button id="saveProfileBtn">💾 Kaydet</button>
+            </div>
+            <div class="card">
+                <div class="card-title">⚡ Metabolizma</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="small-text">BMR</div>
+                        <div id="bmrVal" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="small-text">Günlük İhtiyaç</div>
+                        <div id="needVal" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="small-text">Protein Hedefi</div>
+                        <div id="proteinTarget" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="small-text">Yağ Oranı</div>
+                        <div id="fatPercentVal" class="stat-value">--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📏 Vücut Ölçüleri</div>
+                <div class="small-text" style="margin-bottom: 0.5rem;">Bugünün ölçülerini girin. Ölçüm geçmişi aşağıda listelenir.</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                    <input type="number" id="measureWeight" placeholder="Kilo (kg)">
+                    <input type="number" id="measureFat" placeholder="Yağ Oranı (%)">
+                    <input type="number" id="measureWaist" placeholder="Bel (cm)">
+                    <input type="number" id="measureNeck" placeholder="Boyun (cm)">
+                    <input type="number" id="measureHip" placeholder="Kalça (cm)">
+                    <input type="number" id="measureChest" placeholder="Göğüs (cm)">
+                    <input type="number" id="measureArm" placeholder="Kol (cm)" style="grid-column: span 2;">
+                </div>
+                <button id="saveMeasurementsBtn" style="width:100%; margin-top:0.5rem;">💾 Bugünün Ölçüsünü Kaydet</button>
+                <div id="measurementsHistory" style="margin-top:1rem;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎨 Uygulama Teması</div>
+                <div class="small-text" style="margin-bottom: 0.5rem;">Uygulamanın genel renklerini ve tarzını değiştirin.</div>
+                <select id="appThemeSelect">
+                    <option value="classic">🔵 Klasik (Mavi/Mor)</option>
+                    <option value="sport">⚡ Enerjik (Siyah/Neon Yeşil)</option>
+                    <option value="nature">🌿 Doğal (Krem/Soft Yeşil)</option>
+                    <option value="luxury">🏆 Lüks (Lacivert/Altın)</option>
+                    <option value="fun">🎮 Eğlenceli (Açık/Pembe)</option>
+                </select>
+                <button id="saveThemeBtn" style="width: 100%; margin-top: 0.5rem;">💾 Temayı Kaydet</button>
+            </div>
+        </div>
+
+        <div id="dailyTab" class="tab-content">
+            <div class="card">
+                <div class="flex-between">
+                    <div class="card-title">📅 <span id="currentDate"></span></div>
+                    <div>
+                        <button id="prevDayBtn" class="secondary small">◀</button>
+                        <button id="nextDayBtn" class="secondary small">▶</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <div class="card-title accordion-header open" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem;">🍽️ Öğünler</div>
+                    <div class="accordion-content show">
+                        <div class="meal-card">
+                            <div class="meal-header">
+                                <div class="meal-name"><span class="badge" style="background:var(--orange);">☀️ SABAH</span></div><button class="small secondary clear-meal" data-meal="morning">Temizle</button></div>
+                            <div class="meal-inputs"><input type="number" id="morningCal" placeholder="Kalori" value="0"><input type="number" id="morningProtein" placeholder="Protein (g)" value="0"><input type="number" id="morningCarbs" placeholder="Karb (g)" value="0">
+                                <input type="number" id="morningFat" placeholder="Yağ (g)" value="0"></div>
+                            <div class="small-text" id="morningTotal">🔥 0 kcal | 🥩 0g | 🍞 0g | 🥑 0g</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-header">
+                                <div class="meal-name"><span class="badge" style="background:var(--success);">🌞 ÖĞLE</span></div><button class="small secondary clear-meal" data-meal="noon">Temizle</button></div>
+                            <div class="meal-inputs"><input type="number" id="noonCal" placeholder="Kalori" value="0"><input type="number" id="noonProtein" placeholder="Protein (g)" value="0"><input type="number" id="noonCarbs" placeholder="Karb (g)" value="0"><input type="number"
+                                    id="noonFat" placeholder="Yağ (g)" value="0"></div>
+                            <div class="small-text" id="noonTotal">🔥 0 kcal | 🥩 0g | 🍞 0g | 🥑 0g</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-header">
+                                <div class="meal-name"><span class="badge" style="background:var(--primary);">🌙 AKŞAM</span></div><button class="small secondary clear-meal" data-meal="evening">Temizle</button></div>
+                            <div class="meal-inputs"><input type="number" id="eveningCal" placeholder="Kalori" value="0"><input type="number" id="eveningProtein" placeholder="Protein (g)" value="0"><input type="number" id="eveningCarbs" placeholder="Karb (g)" value="0">
+                                <input type="number" id="eveningFat" placeholder="Yağ (g)" value="0"></div>
+                            <div class="small-text" id="eveningTotal">🔥 0 kcal | 🥩 0g | 🍞 0g | 🥑 0g</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-header">
+                                <div class="meal-name"><span class="badge" style="background:var(--purple);">🍎 ARA ÖĞÜN</span></div><button class="small secondary clear-meal" data-meal="snack">Temizle</button></div>
+                            <div class="meal-inputs"><input type="number" id="snackCal" placeholder="Kalori" value="0"><input type="number" id="snackProtein" placeholder="Protein (g)" value="0"><input type="number" id="snackCarbs" placeholder="Karb (g)" value="0"><input type="number"
+                                    id="snackFat" placeholder="Yağ (g)" value="0"></div>
+                            <div class="small-text" id="snackTotal">🔥 0 kcal | 🥩 0g | 🍞 0g | 🥑 0g</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="daily-total">
+                    <div>📊 GÜNLÜK TOPLAM</div>
+                    <div><span id="totalCalories">0</span> kcal | 🥩 <span id="totalProtein">0</span>g | 🍞 <span id="totalCarbs">0</span>g | 🥑 <span id="totalFat">0</span>g</div>
+                    <div style="margin-top: 1rem; background: var(--surface); border-radius: 1rem; padding: 0.5rem; border: 1px solid var(--border);">
+                        <canvas id="dailyMacroChart" height="150" style="max-height: 150px;"></canvas>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="small-text">İhtiyaç</div>
+                        <div id="dailyNeedDisplay" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="small-text">Denge</div>
+                        <div id="deficitDisplay" class="stat-value">--</div>
+                    </div>
+                </div>
+
+                <button id="saveDailyBtn" style="width:100%; margin-top:0.5rem;">💾 Kaydet</button>
+                <button id="shareDayBtn" class="secondary" style="width:100%; margin-top:0.5rem;">📲 Günlük Özeti Paylaş (WhatsApp / Sosyal Medya)</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📅 Hızlı Geçiş</div>
+                <div id="quickDates" style="display: flex; gap: 0.3rem; flex-wrap: wrap;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💡 Anlık Öneri</div>
+                <div id="suggestionText">5 gün kayıt yapınca öneriler gelir.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">⭐ Favori Yemeklerim</div>
+                <div id="favoritesList"></div>
+            </div>
+        </div>
+
+        <!-- YENİ AKTİVİTE VE SU SEKMESİ -->
+        <div id="activityTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">💧 Su Takibi</div>
+                <div class="flex-between">
+                    <div>🚰 <span id="waterCount">0</span> Bardak (<span id="waterMl">0</span> ml)</div>
+                    <div>
+                        <button class="small secondary" onclick="addWater(-1)">-</button>
+                        <button class="small" onclick="addWater(1)">+ Su Ekle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🏃 Günlük Hareket</div>
+                <select id="activitySelect">
+                    <option value="1.2">🛋️ Hareketsiz</option>
+                    <option value="1.375" selected>🚶 Hafif Aktif</option>
+                    <option value="1.55">🏃 Orta Aktif</option>
+                    <option value="1.725">💪 Çok Aktif</option>
+                    <option value="1.9">⚡ Ekstra Aktif</option>
+                </select>
+                <div class="meal-inputs">
+                    <input type="number" id="stepCount" placeholder="🚶 Adım Sayısı" style="grid-column: span 2;">
+                    <input type="number" id="exerciseCal" placeholder="🏋️ Egzersiz (kcal)">
+                    <input type="number" id="exerciseDurationTotal" placeholder="⏱️ Toplam Spor (dk)">
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">💪 Bugünün Antrenmanı</div>
+                <div id="todayWorkoutDisplay" class="small-text" style="white-space: pre-wrap; font-size: 0.95rem; color: var(--primary);">Program yükleniyor...</div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔥 Egzersiz Ekle</div>
+                <div class="meal-inputs" style="margin-bottom: 0.5rem;">
+                    <select id="sportType" style="margin-bottom: 0;">
+                        <option value="8">🏃 Koşu (8 kcal/dk)</option>
+                        <option value="6">🚴 Bisiklet (6 kcal/dk)</option>
+                        <option value="5">🏋️ Ağırlık (5 kcal/dk)</option>
+                        <option value="4">🚶 Yürüyüş (4 kcal/dk)</option>
+                        <option value="10">🔥 HIIT (10 kcal/dk)</option>
+                    </select>
+                    <input type="number" id="sportDuration" placeholder="Süre (dk)" style="margin-bottom: 0;">
+                </div>
+                <button id="addSportBtn" class="secondary" style="width: 100%;">Egzersizi Kaydet</button>
+            </div>
+            <button onclick="saveCurrentFromInputs()" style="width:100%; margin-top:0.5rem;">💾 Aktivite Verilerini Kaydet</button>
+        </div>
+
+        <!-- YENİ TARİFLERİM SEKMESİ -->
+        <div id="recipesTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📖 Yeni Tarif Ekle</div>
+                <input type="text" id="recipeName" placeholder="Tarif Adı (Örn: Proteinli Yulaf Lapası)">
+                <textarea id="recipeDetails" placeholder="Malzemeler ve Hazırlanışı..." style="width: 100%; height: 120px; padding: 0.8rem 1rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 0.7rem; font-family: inherit; resize: vertical; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;"></textarea>
+                <div class="small-text" style="margin-bottom: 0.5rem;">1 Porsiyon için Makro Değerleri (Opsiyonel)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="number" id="recipeCal" placeholder="Kalori (Kcal)">
+                    <input type="number" id="recipeProt" placeholder="Protein (g)">
+                    <input type="number" id="recipeCarbs" placeholder="Karb (g)">
+                    <input type="number" id="recipeFat" placeholder="Yağ (g)">
+                </div>
+                <button id="saveRecipeBtn" style="width: 100%; margin-top: 0.5rem;">💾 Tarifi Kaydet</button>
+            </div>
+            <div class="card">
+                <div class="card-title">🍲 Kayıtlı Tariflerim</div>
+                <div class="small-text" style="margin-bottom: 1rem;">Tarifin malzemelerini ve hazırlanışını görmek için üzerine tıklayın.</div>
+                <div id="recipesList"></div>
+            </div>
+        </div>
+
+        <!-- YENİ ALIŞKANLIKLAR SEKMESİ -->
+        <div id="habitsTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">➕ Yeni Alışkanlık</div>
+                <div class="flex-between" style="gap: 0.5rem;">
+                    <input type="text" id="newHabitInput" placeholder="Örn: Kitap Okumak, Vitamin..." style="margin-bottom: 0;">
+                    <button onclick="addNewHabit()" style="white-space: nowrap;">Ekle</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">✅ Bugünün Görevleri (<span id="habitsDateDisplay"></span>)</div>
+                <div class="small-text" style="margin-bottom: 1rem;">Günün alışkanlıklarını tamamladıkça işaretle ve zinciri kırma!</div>
+                <div id="habitsList"></div>
+            </div>
+        </div>
+
+        <div id="goalsTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🎯 Kilo Hedefi</div>
+                <input type="number" id="targetWeight" placeholder="Hedef Kilo (kg)">
+                <input type="date" id="targetDate" placeholder="Hedef Tarih">
+                <div id="goalInfo" class="stat-grid" style="margin-top:1rem;"></div>
+                <div class="progress-bar">
+                    <div id="weightProgressFill" class="progress-fill" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Makro Hedefleri (İsteğe Bağlı)</div>
+                <div class="small-text" style="margin-bottom: 0.5rem;">Boş bırakırsanız, sistem otomatik olarak hesaplar.</div>
+                <input type="number" id="targetProteinInput" placeholder="Hedef Protein (g)">
+                <input type="number" id="targetCarbsInput" placeholder="Hedef Karbonhidrat (g)">
+                <input type="number" id="targetFatInput" placeholder="Hedef Yağ (g)">
+                <button id="saveGoalBtn" style="width: 100%; margin-top: 0.8rem;">💾 Hedefleri Kaydet</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Hedefe Kalan</div>
+                <div id="remainingInfo" class="stat-grid"></div>
+            </div>
+        </div>
+
+        <div id="reportsTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📆 Haftalık Rapor</div>
+                <div id="weeklyReport"></div>
+                <button id="exportBtn" class="secondary small" style="margin-top:0.5rem;">📥 Excel'e Aktar</button>
+            </div>
+            <div class="card">
+                <div class="card-title">🔔 Bildirimler & Hatırlatıcılar</div>
+                <div class="small-text" style="margin-bottom: 0.8rem;">Uygulamanın sana su ve yemek vakitlerini hatırlatması için bildirim izni vermelisin.</div>
+                <button id="requestNotifBtn" class="secondary" style="width: 100%; margin-bottom: 0.8rem; border-color: var(--primary); color: var(--primary);">🔔 Bildirim İzni Ver</button>
+
+                <div class="flex-between" style="margin-bottom: 0.8rem;">
+                    <span>💧 Su İçme (2 Saatte Bir)</span>
+                    <input type="checkbox" id="notifWater" style="width: 1.5rem; height: 1.5rem; margin: 0;">
+                </div>
+                <div class="flex-between">
+                    <span>🍽️ Öğünler (09:00, 13:00, 19:00)</span>
+                    <input type="checkbox" id="notifMeals" style="width: 1.5rem; height: 1.5rem; margin: 0;">
+                </div>
+                <button id="saveNotifBtn" style="width: 100%; margin-top: 0.8rem;">💾 Ayarları Kaydet</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📆 Aylık Rapor</div>
+                <div id="monthlyReport"></div>
+            </div>
+        </div>
+
+        <div id="moodTab" class="tab-content hidden">
+            <div class="card" style="text-align: center;">
+                <div class="card-title" style="justify-content: center; font-size: 1.25rem;">😊 Bugün Nasıl Hissediyorsun?</div>
+                <div class="small-text" style="margin-bottom: 1.5rem;">Ruh halini kaydet, sana özel motivasyon sözünü kap!</div>
+                <div class="mood-grid">
+                    <div class="mood-btn mood-card" data-mood="😢" data-mood-type="sad">
+                        <div class="mood-emoji">😢</div>
+                        <div class="mood-text">Kötü</div>
+                    </div>
+                    <div class="mood-btn mood-card" data-mood="😐" data-mood-type="neutral">
+                        <div class="mood-emoji">😐</div>
+                        <div class="mood-text">Normal</div>
+                    </div>
+                    <div class="mood-btn mood-card" data-mood="🙂" data-mood-type="good">
+                        <div class="mood-emoji">🙂</div>
+                        <div class="mood-text">İyi</div>
+                    </div>
+                    <div class="mood-btn mood-card" data-mood="😊" data-mood-type="happy">
+                        <div class="mood-emoji">😊</div>
+                        <div class="mood-text">Çok İyi</div>
+                    </div>
+                    <div class="mood-btn mood-card" data-mood="🤩" data-mood-type="excellent">
+                        <div class="mood-emoji">🤩</div>
+                        <div class="mood-text">Müthiş</div>
+                    </div>
+                </div>
+                <div id="motivationCard" style="margin-top:1.5rem; padding:1.5rem; background: linear-gradient(135deg, var(--primary), var(--purple)); color: white; border-radius:1.5rem; display:none; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Ruh Hali Geçmişi (Son 7 Gün)</div>
+                <div id="moodHistory"></div>
+            </div>
+        </div>
+
+        <div id="historyTab" class="tab-content hidden">
+            <div class="card">
+                <div id="historyList" class="daily-list"></div>
+            </div>
+        </div>
+
+        <div id="statsTab" class="tab-content hidden">
+            <div class="card" style="padding: 0.8rem; text-align: center; margin-bottom: 1rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid var(--primary);">
+                <div class="small-text" style="color: var(--text); font-weight: 600; margin-bottom: 0.5rem;">🔎 Grafiklere iki parmağınızla (veya fare tekerleğiyle) yaklaşabilirsiniz.</div>
+                <button onclick="resetAllChartsZoom()" class="secondary small" style="width: 100%;">Görünümü Sıfırla</button>
+            </div>
+            <div class="card">
+                <div class="card-title">⚖️ Kilo Trendi (Tahmini vs Gerçek)</div><canvas id="weightChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">📉 Yağ Oranı Trendi</div><canvas id="fatPercentChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">🔥 Kalori Analizi</div><canvas id="calChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">🚶 Adım Sayısı</div><canvas id="stepChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">⏱️ Spor Süresi</div><canvas id="sportDurationChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">💧 Su Tüketimi (ml)</div><canvas id="waterChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">🥩 Protein</div><canvas id="proteinChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">🍞 Karbonhidrat</div><canvas id="carbsChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">🥑 Yağ</div><canvas id="fatChart" height="150"></canvas></div>
+            <div class="card">
+                <div class="card-title">📈 Trend</div><canvas id="trendChart" height="150"></canvas></div>
+        </div>
+
+        <div id="aiTab" class="tab-content hidden">
+            <!-- API Ayarları bölümü kişisel kullanım için koda gömüldüğünden gizlendi -->
+            <div class="card">
+                <div class="card-title">🔑 Gemini API Ayarları</div>
+                <div class="small-text" style="margin-bottom: 0.5rem;">Yapay zeka özelliğini kullanmak için Gemini API anahtarınızı girin. Anahtarınız tarayıcınızda saklanır.</div>
+                <input type="password" id="geminiApiKeyInput" placeholder="Gemini API Key">
+                <button id="saveGeminiApiBtn" class="small" style="width: 100%; margin-top: 0.5rem;">Kaydet</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🤖 Gemini Kalori Hesapla</div>
+                <div class="small-text" style="margin-bottom: 0.5rem;">Kameradan anında fotoğraf çekin, görsel yükleyin veya yemeği metin olarak yazın.</div>
+                <input type="file" id="aiImageInput" accept="image/*" capture="environment" style="padding: 0.3rem;">
+                <img id="aiImagePreview" style="max-width: 100%; border-radius: 1rem; margin-bottom: 0.5rem; display: none;">
+
+                <textarea id="aiPromptInput" placeholder="Örn: 100g tavuk göğsü, 1 tabak pilav... (Gemini Türkçe'yi mükemmel anlar)" style="width: 100%; padding: 0.7rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-bottom: 0.7rem; font-size: 0.9rem; resize: vertical; min-height: 80px;"></textarea>
+
+                <button id="askAIBtn" style="width: 100%;">Analiz Et</button>
+
+                <div id="aiResult" style="margin-top: 1rem; padding: 1rem; background: var(--surface); border-radius: 1rem; border: 1px solid var(--border); line-height: 1.5; display: none;"></div>
+            </div>
+        </div>
+
+        <div id="workoutTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">⏱️ Kronometre & Dinlenme</div>
+                <div id="stopwatchDisplay" style="font-size: 3.5rem; font-weight: 800; text-align: center; margin: 1rem 0; font-variant-numeric: tabular-nums; color: var(--primary); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transition: color 0.3s ease;">00:00.00</div>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem;">
+                    <button id="startStopwatchBtn" style="flex: 1; background: var(--success); font-size: 1.1rem;">▶ Başlat</button>
+                    <button id="resetStopwatchBtn" class="secondary" style="flex: 1; font-size: 1.1rem;">🔄 Sıfırla</button>
+                </div>
+
+                <div class="small-text" style="margin-bottom: 0.5rem; text-align: center; font-weight: 700;">Set Arası Dinlenme Başlat</div>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="secondary small" onclick="startRestTimer(30)" style="flex: 1;">30s</button>
+                    <button class="secondary small" onclick="startRestTimer(60)" style="flex: 1;">60s</button>
+                    <button class="secondary small" onclick="startRestTimer(90)" style="flex: 1;">90s</button>
+                    <button class="secondary small" onclick="startRestTimer(120)" style="flex: 1;">120s</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📅 Haftalık Spor Programı</div>
+                <select id="workoutDaySelect">
+                    <option value="1">Pazartesi</option>
+                    <option value="2">Salı</option>
+                    <option value="3">Çarşamba</option>
+                    <option value="4">Perşembe</option>
+                    <option value="5">Cuma</option>
+                    <option value="6">Cumartesi</option>
+                    <option value="0">Pazar</option>
+                </select>
+                <textarea id="workoutText" placeholder="Örn: 3x12 Bench Press, 30dk Bisiklet..." style="width: 100%; height: 150px; padding: 0.7rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-bottom: 0.7rem; font-family: inherit; resize: vertical;"></textarea>
+                <button id="saveWorkoutBtn" style="width: 100%;">💾 Günün Programını Kaydet</button>
+            </div>
+        </div>
+
+        <div id="badgesTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">🏆 Başarılar & Rozetler</div>
+                <div class="small-text" style="margin-bottom: 1rem;">Hedeflerinize ulaştıkça yeni rozetlerin kilidini açın! Düzenli kayıt yaparak hepsini toplayın.</div>
+                <div id="badgesList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;"></div>
+            </div>
+        </div>
+
+        <!-- YENİ BİLGİ KÜTÜPHANESİ SEKMESİ -->
+        <div id="infoTab" class="tab-content hidden">
+            <div class="card">
+                <div class="card-title">📚 Bilgi Kütüphanesi & Rehber</div>
+                <div class="small-text" style="margin-bottom: 1rem;">Hedefinize ulaşmanıza yardımcı olacak uzman ipuçları. Okumak istediğiniz başlığa dokunun.</div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">🏃‍♂️ Spor İçin Bilgiler</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>Antrenmandan 1-2 saat önce karbonhidrat ağırlıklı, sindirimi kolay hafif bir öğün tüketin.</li>
+                        <li>Spordan sonraki ilk 45 dakika içinde yeterli protein alımı, kas onarımı için çok kritiktir.</li>
+                        <li>Haftada en az 1-2 gün kaslarınızı dinlendirin (Recovery). Vücut dinlenirken gelişir.</li>
+                        <li>Antrenman sırasında kaslarınızı susuz bırakmamak için yudum yudum su için.</li>
+                    </ul>
+                </div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">💪 Kas Gelişimi (Hipertrofi)</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>Kas gelişimi için ağırlık antrenmanlarında <b>kademeli aşırı yüklenme (progressive overload)</b> yapın. Ağırlıkları veya tekrar sayılarını zamanla artırın.</li>
+                        <li>Günlük protein ihtiyacınızı (kilo başına yaklaşık 1.6 - 2.0 gram) mutlaka tamamlayın.</li>
+                        <li>Hareketi yaparken çalıştığı kasa odaklanın ve ağırlığı indirirken (negatif evre) kontrollü ve yavaş olun.</li>
+                        <li>Kaslar antrenmanda değil, dinlenirken büyür. Haftada en az 2 gün dinlenmeye ve her gün 7-8 saat uyumaya özen gösterin.</li>
+                    </ul>
+                </div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">📉 Kilo Vermek İçin</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>En temel kural <b>Kalori Açığı</b>'dır. Günlük yaktığınızdan daha az kalori almalısınız.</li>
+                        <li>Protein ağırlıklı beslenmek tokluk hissini artırır ve diyet sürecinde kas kaybını önler.</li>
+                        <li>Lifli gıdalar (sebze, yulaf, tam tahıllar) kan şekerini dengeler, ani acıkmaları geciktirir.</li>
+                        <li>Gizli kalorilere (salata sosları, şekerli kahveler, ufak atıştırmalıklar) çok dikkat edin.</li>
+                    </ul>
+                </div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">📈 Kilo Almak İçin</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>Kilo vermek için nasıl açık lazımsa, almak için de <b>Kalori Fazlası</b> şarttır.</li>
+                        <li>Hacmi küçük ama kalorisi yüksek gıdalar (kuruyemiş, fıstık ezmesi, zeytinyağı, avokado) tüketin.</li>
+                        <li>Sıvı kalorilerden (süt, ev yapımı meyveli yulaflı smoothie vb.) büyük ölçüde destek alın.</li>
+                        <li>Sadece yağlanmamak ve kas kütlesi eklemek için bol ağırlık antrenmanları yapın.</li>
+                    </ul>
+                </div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">🔥 Yağ Yakımı İçin</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>Kardiyo antrenmanlarını (özellikle HIIT veya sabah aç karnına hafif tempolu yürüyüş) rutininize ekleyin.</li>
+                        <li>Şekeri ve basit karbonhidratları (beyaz un, hamur işi vb.) hayatınızdan tamamen çıkarın.</li>
+                        <li>Günde en az 7-8 saat kaliteli uyku uyuyun; uykusuzluk stres hormonunu (kortizol) artırıp yağ depolatır.</li>
+                        <li>Şekersiz yeşil çay, filtre kahve gibi doğal metabolizma hızlandırıcıları tüketebilirsiniz.</li>
+                    </ul>
+                </div>
+
+                <div class="card-title accordion-header" onclick="toggleAccordion(this)" style="padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.5rem; font-size: 1rem;">💧 Ödem Atmak İçin</div>
+                <div class="accordion-content">
+                    <ul style="padding-left: 1.5rem; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; color: var(--text-secondary);">
+                        <li>Günde en az 2.5 - 3 litre su için. Su içmek, paradoksal bir şekilde vücuttaki ödemin en büyük düşmanıdır.</li>
+                        <li>Tuzu ve sodyumu yüksek işlenmiş paketli gıdaları (salamura, cips vb.) ciddi oranda azaltın.</li>
+                        <li>Maydanoz suyu, kiraz sapı, ananas ve mısır püskülü çaylarından destek alabilirsiniz.</li>
+                        <li>Potasyum zengini besinler (muz, ıspanak, avokado) vücuttaki sodyum dengesini sağlayıp ödemi söker.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="data.js"></script>
+    <script src="charts.js"></script>
+    <script src="ai.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        // Service Worker (Çevrimdışı ve PWA Desteği İçin)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(function() {
+                console.log("Service Worker başarıyla kaydedildi.");
+            });
+        }
+
+        // PWA Kurulum Butonu (Telefona Yükle) Kontrolü
+        var deferredPrompt;
+        var installBtn = document.getElementById("installAppBtn");
+
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) installBtn.style.display = "block";
+        });
+
+        if (installBtn) {
+            installBtn.onclick = async function() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    var result = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    installBtn.style.display = "none";
+                }
+            };
+        }
+        window.addEventListener('appinstalled', function() {
+            if (installBtn) installBtn.style.display = "none";
+        });
+    </script>
+</body>
+
+</html>
