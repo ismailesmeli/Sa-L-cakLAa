@@ -9,7 +9,10 @@ var userProfile = {
     targetDate: null,
     targetProtein: null,
     targetCarbs: null,
-    targetFat: null
+    targetFat: null,
+    // YENİ HEDEF SİSTEMİ
+    activeGoal: null,
+    goalHistory: []
 };
 var dailyEntries = {};
 var moodEntries = {};
@@ -31,11 +34,7 @@ function saveAllData() {
     localStorage.setItem("nutritrack_mood", JSON.stringify(moodEntries));
     localStorage.setItem("nutritrack_measurements", JSON.stringify(bodyMeasurements));
 
-    // Debug için
-    console.log("Veriler kaydedildi:", {
-        profile: userProfile,
-        entries: dailyEntries
-    });
+    console.log("Veriler kaydedildi.");
 }
 
 function loadAllData() {
@@ -60,38 +59,29 @@ function loadAllData() {
     }
 
     // Bugün ve gelecek günleri kontrol et
-    var today = getToday();
     for (var i = 0; i <= 14; i++) {
         var d = new Date();
         d.setDate(d.getDate() + i);
         var iso = d.toISOString().slice(0, 10);
         if (!dailyEntries[iso]) {
-            dailyEntries[iso] = {
-                morning: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-                noon: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-                evening: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-                snack: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-                activity: 1.375,
-                exercise: 0,
-                exerciseDuration: 0,
-                steps: 0,
-                habits: {}
-            };
+            dailyEntries[iso] = getEmptyMeals();
         }
     }
     saveAllData();
 }
 
+// ==================== YENİ FORMAT: items[] ====================
 function getEmptyMeals() {
     return {
-        morning: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-        noon: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-        evening: { cal: 0, protein: 0, carbs: 0, fat: 0 },
-        snack: { cal: 0, protein: 0, carbs: 0, fat: 0 },
+        morning: { items: [] },
+        noon: { items: [] },
+        evening: { items: [] },
+        snack: { items: [] },
         activity: 1.375,
         exercise: 0,
         exerciseDuration: 0,
         steps: 0,
+        water: 0,
         habits: {}
     };
 }
@@ -117,41 +107,45 @@ function getDailyNeeds(date) {
     if (!entry) return Math.round(bmr * 1.375);
     var activity = entry.activity || 1.375;
     var exercise = entry.exercise || 0;
-    return Math.round(bmr * activity) + exercise;
+
+    // Adım bonusu: Her 1000 adım ≈ 40 kcal yakım
+    var steps = entry.steps || 0;
+    var stepBonus = Math.round((steps / 1000) * 40);
+
+    return Math.round(bmr * activity) + exercise + stepBonus;
 }
 
+// ==================== YENİ getDailyTotal (items[] destekli) ====================
 function getDailyTotal(entry) {
     if (!entry) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    var totalCal = 0;
-    var totalProt = 0;
-    var totalCarbs = 0;
-    var totalFat = 0;
-    if (entry.morning) {
-        totalCal += (Number(entry.morning.cal) || 0);
-        totalProt += (Number(entry.morning.protein) || 0);
-        totalCarbs += (Number(entry.morning.carbs) || 0);
-        totalFat += (Number(entry.morning.fat) || 0);
-    }
-    if (entry.noon) {
-        totalCal += (Number(entry.noon.cal) || 0);
-        totalProt += (Number(entry.noon.protein) || 0);
-        totalCarbs += (Number(entry.noon.carbs) || 0);
-        totalFat += (Number(entry.noon.fat) || 0);
-    }
-    if (entry.evening) {
-        totalCal += (Number(entry.evening.cal) || 0);
-        totalProt += (Number(entry.evening.protein) || 0);
-        totalCarbs += (Number(entry.evening.carbs) || 0);
-        totalFat += (Number(entry.evening.fat) || 0);
-    }
-    if (entry.snack) {
-        totalCal += (Number(entry.snack.cal) || 0);
-        totalProt += (Number(entry.snack.protein) || 0);
-        totalCarbs += (Number(entry.snack.carbs) || 0);
-        totalFat += (Number(entry.snack.fat) || 0);
-    }
+    var totalCal = 0,
+        totalProt = 0,
+        totalCarbs = 0,
+        totalFat = 0;
+
+    ["morning", "noon", "evening", "snack"].forEach(function(mealKey) {
+        var meal = entry[mealKey];
+        if (!meal) return;
+
+        // Yeni format: items dizisi
+        if (Array.isArray(meal.items)) {
+            meal.items.forEach(function(item) {
+                totalCal += Number(item.cal) || 0;
+                totalProt += Number(item.prot) || 0;
+                totalCarbs += Number(item.carbs) || 0;
+                totalFat += Number(item.fat) || 0;
+            });
+        } else {
+            // Eski format (migration öncesi güvenlik): cal, protein, carbs, fat
+            totalCal += Number(meal.cal) || 0;
+            totalProt += Number(meal.protein) || 0;
+            totalCarbs += Number(meal.carbs) || 0;
+            totalFat += Number(meal.fat) || 0;
+        }
+    });
+
     return {
-        calories: totalCal,
+        calories: Math.round(totalCal),
         protein: totalProt,
         carbs: totalCarbs,
         fat: totalFat
