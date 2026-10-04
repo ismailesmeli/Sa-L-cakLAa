@@ -1,3 +1,4 @@
+
 // ==================== VERİ YÖNETİMİ ====================
 var userProfile = {
     avatar: null,
