@@ -1,4 +1,90 @@
 // ==================== UYGULAMA ARAYÜZ (UI) ve MANTIK ====================
+// ============================================================
+// ANA SAYFA — YENİ FONKSİYONLAR (en üstte tanımlı)
+// ============================================================
+
+var homeGreetings = {
+    night: { emoji: "🌙", text: "İyi geceler", sub: "Yarın yeni bir gün" },
+    morning: { emoji: "☀️", text: "Günaydın!", sub: "Güne enerjik başla" },
+    noon: { emoji: "🌤️", text: "İyi günler!", sub: "Öğle vakti geldi" },
+    evening: { emoji: "🌆", text: "İyi akşamlar", sub: "Günü güzel kapat" }
+};
+
+var homeQuotes = [
+    "Küçük adımlar, büyük sonuçlar doğurur. Bugün de hedefine bir adım daha yaklaş!",
+    "Bugün dünden daha iyi ol. Sadece kendine rakipsin! 🏆",
+    "Vücudun senin tapınağındır, ona iyi bak. 🥦",
+    "Disiplin, ne istediğinle şimdi ne istediğin arasında seçim yapmaktır. 🎯",
+    "Başarı, her gün tekrarlanan küçük çabaların toplamıdır. 🌟",
+    "Mazeretler kalori yakmaz! Bugün elinden gelenin en iyisini yap. 🔥",
+    "Sağlıklı beslenmek bir diyet değil, bir yaşam tarzıdır. 🥑",
+    "Her yeni gün, yeni bir başlangıçtır. Hadi başlayalım! ✨"
+];
+
+function updateHomeGreeting() {
+    var hour = new Date().getHours();
+    var greeting;
+    if (hour < 6) greeting = homeGreetings.night;
+    else if (hour < 12) greeting = homeGreetings.morning;
+    else if (hour < 18) greeting = homeGreetings.noon;
+    else greeting = homeGreetings.evening;
+
+    var emojiEl = document.getElementById("homeGreetingEmoji");
+    var textEl = document.getElementById("homeGreetingText");
+    var subEl = document.getElementById("homeGreetingSub");
+
+    if (emojiEl) emojiEl.innerText = greeting.emoji;
+    if (textEl) textEl.innerText = greeting.text;
+    if (subEl) subEl.innerText = greeting.sub;
+}
+
+function updateHomeQuote() {
+    var el = document.getElementById("homeQuoteText");
+    if (!el) return;
+    var today = new Date();
+    var dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+    var quote = homeQuotes[dayOfYear % homeQuotes.length];
+    el.innerText = '"' + quote + '"';
+}
+
+function updateHomeScreen(total, entry, need) {
+    // Kalori değerleri
+    var calEl = document.getElementById("homeBigCal");
+    if (calEl) calEl.innerText = total.calories;
+    var targetEl = document.getElementById("homeBigCalTarget");
+    if (targetEl) targetEl.innerText = "Hedef: " + need + " kcal";
+
+    // Kalori halkası
+    var circle = document.getElementById("homeCalCircle");
+    if (circle) {
+        var circumference = 2 * Math.PI * 88;
+        var percent = need > 0 ? Math.min(1, total.calories / need) : 0;
+        circle.style.strokeDasharray = (circumference * percent) + " " + circumference;
+    }
+
+    // Su
+    var waterEl = document.getElementById("homeWaterBig");
+    if (waterEl) waterEl.innerText = entry.water || 0;
+
+    // Adım
+    var stepEl = document.getElementById("homeStepsBig");
+    if (stepEl) {
+        var steps = entry.steps || 0;
+        stepEl.innerText = steps >= 1000 ? (steps / 1000).toFixed(1) + "k" : steps;
+    }
+
+    // Egzersiz kalori
+    var exEl = document.getElementById("homeExerciseBig");
+    if (exEl) exEl.innerText = entry.exercise || 0;
+
+    // Spor süresi
+    var sportEl = document.getElementById("homeSportBig");
+    if (sportEl) sportEl.innerText = entry.exerciseDuration || 0;
+}
+
+// ============================================================
+// UYGULAMA ARAYÜZ (UI) ve MANTIK
+// ============================================================
 
 function showNotification(message) {
     var notif = document.createElement("div");
@@ -236,16 +322,8 @@ function updateUI() {
     updateFeedback(total, need, targetProtein, targetCarbs, targetFat);
 
     // Ana sayfa özeti
-    var homeCalEl = document.getElementById("homeCalDisplay");
-    if (homeCalEl) {
-        homeCalEl.innerText = total.calories;
-        var hwEl = document.getElementById("homeWaterDisplay");
-        if (hwEl) hwEl.innerText = (entry.water || 0) + " b";
-        var hsEl = document.getElementById("homeStepDisplay");
-        if (hsEl) hsEl.innerText = (entry.steps || 0).toLocaleString('tr-TR');
-        var hspEl = document.getElementById("homeSportDisplay");
-        if (hspEl) hspEl.innerText = (entry.exerciseDuration || 0) + " dk";
-    }
+    // ============ ANA SAYFA ÖZETİ (YENİ) ============
+    updateHomeScreen(total, entry, need);
 
     // Vücut yağ oranı
     var fatPercentValEl = document.getElementById("fatPercentVal");
@@ -2082,6 +2160,8 @@ function switchTab(tab, skipHistory) {
     var floatingBtn = document.getElementById("floatingMenuBtn");
     if (floatingBtn) floatingBtn.setAttribute("data-active-tab", tab);
     localStorage.setItem("lastActiveTab", tab);
+    // Sekme değişince sayfayı en üste kaydır
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ==================== THEME ====================
@@ -4396,4 +4476,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, { passive: true });
     }
+
 });
